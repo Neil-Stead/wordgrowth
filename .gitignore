@@ -10,3 +10,6 @@ __pycache__/
 
 # Ignore environment settings (optional)
 .env
+
+# Ignore the database
+db/vocab.db
