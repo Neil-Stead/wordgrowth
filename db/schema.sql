@@ -1,0 +1,5 @@
+CREATE TABLE users (id INT PRIMARY KEY AUTOINCREMENT, username VARCHAR(22) NOT NULL UNIQUE, email VARCHAR(44) NOT NULL UNIQUE, password_hash VARCHAR(20) NOT NULL); 
+
+CREATE TABLE vocabulary (id INT PRIMARY KEY AUTOINCREMENT, word TEXT NOT NULL, definition TEXT, notes TEXT);
+
+CREATE TABLE examples (id INT PRIMARY KEY AUTOINCREMENT, vocab_id INT NOT NULL, source TEXT, media_url TEXT, media_type TEXT, FOREIGN KEY (vocab_id) REFERENCES vocabulary(id));
