@@ -28,9 +28,8 @@ def show_words():
 
     # if not session["user_id"]:
 
-
-
     return render_template("index.html", rows=rows)
+
 
 @app.route("/register", methods=["POST", "GET"])
 def register():
@@ -86,17 +85,57 @@ def register():
 
 @app.route("/login", methods=["POST", "GET"])
 def login():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    """Log user in"""
+
+    # Forget any user_id
+    session.clear()
+
+    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-        return render_template("login.html")
+        # Ensure username was submitted
+        if not request.form.get("username"):
+            return apology("must provide username", 403)
 
+        # Ensure password was submitted
+        elif not request.form.get("password"):
+            return apology("must provide password", 403)
 
+        # Query database for username
+        cursor.execute(
+            "SELECT * FROM users WHERE username = ?", [request.form.get("username")]
+        )
+        conn.commit()
 
+        rows = cursor.fetchall()
 
+        # Ensure username exists and password is correct
+        if len(rows) != 1 or not check_password_hash(
+            rows[0]["password_hash"], request.form.get("password")
+        ):
+            return apology("invalid username and/or password", 403)
 
+        # Remember which user has logged in
+        session["user_id"] = rows[0]["id"]
 
+        # Redirect user to home page
+        return redirect("/")
 
+    # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
 
+
+@app.route("/logout")
+def logout():
+    """Log user out"""
+
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")
 
 

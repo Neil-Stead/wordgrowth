@@ -7,10 +7,9 @@ DATABASE = "db/vocab.db"
 def get_db_connection():
     if 'db' not in g:
         g.db = sqlite3.connect(DATABASE)
+        g.db.execute("PRAGMA foreign_keys = ON")  # Enables foreign key checks
+        g.db.row_factory = sqlite3.Row # enables dictionaries to be returned not just tuples
     return g.db
-
-
-
 
 def apology(message, code=400):
     """Render message as an apology to user."""
