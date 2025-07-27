@@ -4,7 +4,6 @@ import sqlite3
 # Configure app
 app = Flask(__name__)
 
-
 DATABASE = "db/vocab.db"
 
 def get_db_connection():
@@ -18,12 +17,16 @@ def close_db_connection(exception):
     if db is not None:
         db.close()
 
-
 @app.route("/")
 def show_words():    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM vocabulary LIMIT 5")
     rows = cursor.fetchall()
+
+    if not session["user_id"]:
+
+
+
     return render_template("index.html", rows=rows)
 
