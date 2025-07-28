@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    New Word
+{% endblock %}
+
+{% block main %}
+    <form action="/new_word" method="post">
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="word" placeholder="Enter Word" type="text">
+        </div>
+        <div class="mb-3">
+            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="definition" placeholder="Enter Defitinition" type="text">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="notes" placeholder="Any notes (optional)" type="text">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="example_sentence" placeholder="Example Sentence (optional)" type="text">
+        </div>
+        <div class="mb-3">
+            <input class="form-control mx-auto w-auto" name="example_media" placeholder="Example Media (optional)" type="text">
+        </div>
+        <button class="btn btn-primary" type="submit">Submit</button>
+    </form>
+{% endblock %}

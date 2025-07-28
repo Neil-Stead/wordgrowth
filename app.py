@@ -1,4 +1,4 @@
-from flask import Flask, render_template, g, redirect, request, session
+from flask import Flask, render_template, g, redirect, request, session, url_for
 from flask_session import Session
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -23,7 +23,7 @@ def close_db_connection(exception):
 def show_words():    
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM vocabulary LIMIT 5")
+    cursor.execute("SELECT * FROM vocabulary")
     rows = cursor.fetchall()
 
     # if not session["user_id"]:
@@ -137,5 +137,47 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+@app.route("/new_word", methods=["POST", "GET"])
+def new_word():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+        if not request.form.get("word"):
+            return apology("must provide word")
+            
+        # Ensure definition was submitted
+        elif not request.form.get("definition"):
+            return apology("must provide definition", 400)
+
+        else:
+        # Insert new word into database with notes
+            cursor.execute(
+                "INSERT INTO vocabulary (user_id, word, definition, notes, example_sentence, example_media) VALUES (?, ?, ?, ?, ?, ?)", [session["user_id"], request.form.get("word"), request.form.get("definition"), request.form.get("notes"), request.form.get("example_sentence"), request.form.get("example_media")]
+                )
+            conn.commit()
+
+            new_id = cursor.lastrowid
+            conn.commit()
+                
+        return redirect(url_for("word_view", word_id=new_id))
+
+    else:
+        return render_template("new_word.html")
+    
+
+@app.route("/word_view/<int:word_id>")
+def word_view(word_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM vocabulary WHERE id=?", [word_id])
+    word = cursor.fetchone()
+
+    if word is None:
+        return apology("word not found")
+    
+    return  render_template("word_view.html", word=word)
+
 
 

@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block main %}
+
+        <h2>{{ word["word"] }}</h2>
+
+        <h3>{{ word["definition"] }}</h3>
+
+        {% if word["notes"] %}
+        <h4><strong>Notes:</strong> {{ word["notes"] }}</h4>
+        {% endif %}
+
+        {% if word["example_sentence"] %}
+        <h4><strong>Example Sentence:</strong> {{ word["example_sentence"] }}</h4>
+        {% endif %}
+
+        {% if word["example_media"] %}
+        <h4><strong>Realworld Example:</strong> {{ word["example_media"] }}</h4>
+        {% endif %}
+
+{% endblock %}

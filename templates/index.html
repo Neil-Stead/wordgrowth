@@ -6,12 +6,25 @@
 
     <h2>Database Results</h2>
 
-        <ul>
-        {% for row in rows %}
-            <li>{{ row["word"] }}</li>
-        {% endfor %}
-        </ul>
-
-        <li>{{ row }}</li>
+    <div class="container mt-3">      
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Word</th>
+                <th>Definition</th>
+                <th>View</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+            <tr>
+                <td>{{ row["word"] }}</td>
+                <td>{{ row["definition"] }}</td>
+                <td><a href="{{ url_for('word_view', word_id=row['id']) }}">View</a></td>
+            </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 {% endblock %}
