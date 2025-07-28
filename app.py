@@ -199,8 +199,25 @@ def word_edit(word_id):
 
     if request.method == "POST":
         # update word into database
+
+        # Use the submitted value if provided; otherwise, keep the old value
+        updated_word = request.form.get("word") or word["word"]
+        updated_definition = request.form.get("definition") or word["definition"]
+        updated_notes = request.form.get("notes") or word["notes"]
+        updated_example_sentence = request.form.get("example_sentence") or word["example_sentence"]
+        updated_example_media = request.form.get("example_media") or word["example_media"]
+
         cursor.execute(
-            "UPDATE vocabulary SET user_id = ?, word = ?, definition = ?, notes = ?, example_sentence = ?, example_media = ? WHERE id = ?", [session["user_id"], request.form.get("word"), request.form.get("definition"), request.form.get("notes"), request.form.get("example_sentence"), request.form.get("example_media"), word_id]
+            "UPDATE vocabulary SET user_id = ?, word = ?, definition = ?, notes = ?, example_sentence = ?, example_media = ? WHERE id = ?", 
+                [
+                session["user_id"], 
+                updated_word, 
+                updated_definition, 
+                updated_notes, 
+                updated_example_sentence, 
+                updated_example_media, 
+                word_id
+                ]
             )
         conn.commit()
                 
