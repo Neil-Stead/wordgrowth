@@ -18,4 +18,6 @@
         <h4><strong>Realworld Example:</strong> {{ word["example_media"] }}</h4>
         {% endif %}
 
+        <button><a href="{{ url_for('word_edit', word_id=word['id']) }}">Edit</a></button>
+
 {% endblock %}

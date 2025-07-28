@@ -152,7 +152,7 @@ def new_word():
             return apology("must provide definition", 400)
 
         else:
-        # Insert new word into database with notes
+        # Insert new word into database
             cursor.execute(
                 "INSERT INTO vocabulary (user_id, word, definition, notes, example_sentence, example_media) VALUES (?, ?, ?, ?, ?, ?)", [session["user_id"], request.form.get("word"), request.form.get("definition"), request.form.get("notes"), request.form.get("example_sentence"), request.form.get("example_media")]
                 )
@@ -179,5 +179,25 @@ def word_view(word_id):
     
     return  render_template("word_view.html", word=word)
 
+
+@app.route("/word_edit/<int:word_id>", methods=["POST", "GET"])
+def word_edit(word_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM vocabulary WHERE id=?", [word_id])
+    word = cursor.fetchone()
+
+    if request.method == "POST":
+        # update word into database
+        cursor.execute(
+            "UPDATE vocabulary SET user_id = ?, word = ?, definition = ?, notes = ?, example_sentence = ?, example_media = ? WHERE id = ?", [session["user_id"], request.form.get("word"), request.form.get("definition"), request.form.get("notes"), request.form.get("example_sentence"), request.form.get("example_media"), word_id]
+            )
+        conn.commit()
+                
+        return redirect(url_for("word_view", word_id=word["id"]))
+    
+    else:
+  
+        return  render_template("word_edit.html", word=word)
 
 
