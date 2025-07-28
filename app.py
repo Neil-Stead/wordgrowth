@@ -3,7 +3,7 @@ from flask_session import Session
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, get_db_connection
+from helpers import apology, get_db_connection, login_required
 
 # Configure app
 app = Flask(__name__)
@@ -23,12 +23,19 @@ def close_db_connection(exception):
 def show_words():    
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM vocabulary")
-    rows = cursor.fetchall()
 
-    # if not session["user_id"]:
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+    
+    else:
 
-    return render_template("index.html", rows=rows)
+        cursor.execute(
+            "SELECT * FROM vocabulary WHERE user_id = ?", [session['user_id']]
+            )
+        conn.commit()
+        rows = cursor.fetchall()
+        
+        return render_template("index.html", rows=rows)
 
 
 @app.route("/register", methods=["POST", "GET"])
@@ -77,7 +84,7 @@ def register():
                     )
                 conn.commit()
                 
-        return redirect("/")
+        return redirect("/login.html")
 
     else:
         return render_template("register.html")
@@ -139,6 +146,7 @@ def logout():
     return redirect("/")
 
 @app.route("/new_word", methods=["POST", "GET"])
+@login_required
 def new_word():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -168,6 +176,7 @@ def new_word():
     
 
 @app.route("/word_view/<int:word_id>")
+@login_required
 def word_view(word_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -181,6 +190,7 @@ def word_view(word_id):
 
 
 @app.route("/word_edit/<int:word_id>", methods=["POST", "GET"])
+@login_required
 def word_edit(word_id):
     conn = get_db_connection()
     cursor = conn.cursor()
