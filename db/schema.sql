@@ -1,5 +1,3 @@
 CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username VARCHAR(22) NOT NULL UNIQUE, email VARCHAR(44) NOT NULL UNIQUE, password_hash VARCHAR(20) NOT NULL); 
 
-CREATE TABLE vocabulary1 (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, word TEXT NOT NULL, definition TEXT, notes TEXT, FOREIGN KEY (user_id) REFERENCES users(id);
-
-CREATE TABLE examples (id INTEGER PRIMARY KEY AUTOINCREMENT, vocab_id INT NOT NULL, source TEXT, media_url TEXT, media_type TEXT, FOREIGN KEY (vocab_id) REFERENCES vocabulary(id));
+CREATE TABLE IF NOT EXISTS "vocabulary" (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, word TEXT NOT NULL, definition TEXT, notes TEXT, example_sentence TEXT, example_media TEXT, FOREIGN KEY (user_id) REFERENCES users(id));
