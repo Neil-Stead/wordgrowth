@@ -1,6 +1,6 @@
 from flask import redirect, render_template, session, g, url_for
 from functools import wraps
-import sqlite3
+import sqlite3, re
 
 DATABASE = "db/vocab.db"
 
@@ -42,3 +42,7 @@ def apology(message, code=400):
         return s
 
     return render_template("apology.html", top=code, bottom=escape(message))
+
+def extract_youtube_id(url):
+    match = re.search(r'(?:v=|\/embed\/|\.be\/)([\w\-]{11})', url)
+    return match.group(1) if match else None

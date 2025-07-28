@@ -3,7 +3,7 @@ from flask_session import Session
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from helpers import apology, get_db_connection, login_required
+from helpers import apology, get_db_connection, login_required, extract_youtube_id
 
 # Configure app
 app = Flask(__name__)
@@ -186,7 +186,17 @@ def word_view(word_id):
     if word is None:
         return apology("word not found")
     
-    return  render_template("word_view.html", word=word)
+    if word["example_media"]:
+        vid_id = extract_youtube_id(word["example_media"])
+
+        print(vid_id)
+
+        return  render_template("word_view.html", word=word, vid_id=vid_id)
+    
+    else:
+        return  render_template("word_view.html", word=word)
+
+
 
 
 @app.route("/word_edit/<int:word_id>", methods=["POST", "GET"])
