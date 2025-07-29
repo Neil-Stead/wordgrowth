@@ -1,30 +1,38 @@
 {% extends "layout.html" %}
 
 {% block main %}
-
-    <p>hello, wordgrowth</p>
-
-    <h2>Database Results</h2>
-
     <div class="container mt-3">      
-        <table class="table">
+        <table class="table table-hover">
             <thead>
-            <tr>
-                <th>Word</th>
-                <th>Definition</th>
-                <th>View</th>
-            </tr>
+                <tr>
+                    <th>Word</th>
+                    <th>Definition</th>
+                    <th>Example Sentence</th>
+                </tr>
             </thead>
             <tbody>
                 {% for row in rows %}
-            <tr>
-                <td>{{ row["word"] }}</td>
-                <td>{{ row["definition"] }}</td>
-                <td><a href="{{ url_for('word_view', word_id=row['id']) }}">View</a></td>
-            </tr>
+                <tr class="clickable-row" data-href="{{ url_for('word_view', word_id=row['id']) }}">
+                    <td class="text-start">{{ row["word"] }}</td>
+                    <td class="text-start">{{ row["definition"] }}</td>
+                    <td class="text-start">{{ row["example_sentence"] }}</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
+    <!-- JavaScript to make rows clickable -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const rows = document.querySelectorAll(".clickable-row");
+            rows.forEach(row => {
+                row.style.cursor = "pointer";
+                row.addEventListener("click", () => {
+                    window.location.href = row.dataset.href;
+                });
+            });
+        });
+    </script>
+  
 {% endblock %}
