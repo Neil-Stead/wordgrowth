@@ -30,12 +30,18 @@ def show_words():
     else:
 
         cursor.execute(
+            "SELECT * FROM users WHERE id = ?", [session['user_id']]
+            )
+        conn.commit()
+        user = cursor.fetchone()
+
+        cursor.execute(
             "SELECT * FROM vocabulary WHERE user_id = ?", [session['user_id']]
             )
         conn.commit()
         rows = cursor.fetchall()
         
-        return render_template("index.html", rows=rows)
+        return render_template("index.html", rows=rows, user=user)
 
 
 @app.route("/register", methods=["POST", "GET"])
@@ -144,6 +150,66 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
+
+@app.route("/account", methods=["GET", "POST"])
+def account():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    if request.method == "POST":
+
+        # Ensure password was submitted
+        if not request.form.get("current_password"):
+            return apology("must provide password", 403)
+
+        # Ensure confirmation of password was submitted and matches original password
+        elif not request.form.get("new_password"):
+            return apology("must provide new password", 403)
+
+        elif not request.form.get("new_password") == request.form.get("confirm_password"):
+            return apology("confirmation does not match new password", 403)
+
+        # Query database for password
+        rows = cursor.execute(
+            "SELECT * FROM users WHERE id = ?", [session["user_id"]]
+        )
+        conn.commit()
+
+        # check password is correct
+        if len(rows) != 1 or not check_password_hash(
+            rows[0]["password_hash"], request.form.get("current_password")
+        ):
+            return apology("invalid password", 403)
+
+        # Update password in database
+
+        else:
+
+            new_password_hash = generate_password_hash(request.form.get("new_password"))
+
+            cursor.execute(
+                "UPDATE users SET password_hash = ? WHERE id = ?", [new_password_hash, session["user_id"]]
+                )
+            conn.commit()
+
+        # Remember which user has logged in
+        session["user_id"] = rows[0]["id"]
+
+        return redirect("/")
+
+    # Allow user to change password
+    else:
+
+        # Display users username
+
+        cursor.execute(
+            "SELECT * FROM users WHERE id = ?", [session["user_id"]]
+            )
+        conn.commit()
+        username = cursor.fetchone()
+
+        return render_template("/account.html", username=username)
+
 
 @app.route("/new_word", methods=["POST", "GET"])
 @login_required

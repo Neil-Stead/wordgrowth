@@ -1,13 +1,15 @@
 {% extends "layout.html" %}
 
 {% block main %}
+    <div class="container" mb-3><h1>{{ user["username"] }}'s Wordlist</h1></div>
+    
     <div class="container mt-3">      
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th>Word</th>
-                    <th>Definition</th>
-                    <th>Example Sentence</th>
+                    <th class="text-start">Word</th>
+                    <th class="text-start">Definition</th>
+                    <th class="text-start">Example Sentence</th>
                 </tr>
             </thead>
             <tbody>
