@@ -1,42 +1,39 @@
 {% extends "layout.html" %}
 
 {% block main %}
-
-    <h2>{{ word["word"] }}</h2>
-
-    <h3>{{ word["definition"] }}</h3>
-
-    {% if word["notes"] %}
-    <h4><strong>Notes:</strong> {{ word["notes"] }}</h4>
-    {% endif %}
-
-    {% if word["example_sentence"] %}
-    <h4><strong>Example Sentence:</strong> {{ word["example_sentence"] }}</h4>
-    {% endif %}
-
-    {% if word["example_media"] %}
-    <h4><strong>Realworld Example:</strong> {{ word["example_media"] }}</h4>
-    {% endif %}
-
     <div class="container">
         <form action="{{  url_for('word_edit', word_id=word['id'])  }}" method="post">
-            <div class="mb-3">
-                <input autocomplete="off" autofocus class="form-control mx-auto w-50" name="word" placeholder="Update Word (optional)" type="text">
+            <div class="row">
+                <!-- column 1 -->
+                <div class="col-6 text-end"><h4>{{ word["word"] }}</h4></div>
+
+                <!-- column 2 -->
+                <div class="col-6 mb-3"><input autocomplete="off" autofocus class="form-control" name="word" placeholder="Update Word (optional)" type="text"></div>
             </div>
-            <div class="mb-3">
-                <input autocomplete="off" class="form-control mx-auto w-50" name="definition" placeholder="Update Defitinition (optional)" type="text">
+
+            <div class="row">
+                <div class="col-6 text-end"><h4><strong>Definition:</strong> {{ word["definition"] }}</h4></div>
+                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="definition" placeholder="Update Defitinition (optional)" type="text"></div>
             </div>
-            <div class="mb-3">
-                <input autocomplete="off" class="form-control mx-auto w-50" name="notes" placeholder="Update notes (optional)" type="text">
+
+            <div class="row">
+                <div class="col-6 text-end"><h4><strong>Notes:</strong> {{ word["notes"] }}</h4></div>
+                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="notes" placeholder="Update notes (optional)" type="text"></div>
             </div>
-            <div class="mb-3">
-                <input autocomplete="off" class="form-control mx-auto w-50" name="example_sentence" placeholder="Update Example Sentence (optional)" type="text">
+
+            <div class="row">
+                <div class="col-6 text-end"><h4><strong>Example Sentence:</strong> {{ word["example_sentence"] }}</h4></div>
+                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="example_sentence" placeholder="Update Example Sentence (optional)" type="text"></div>
             </div>
-            <div class="mb-3">
-                <input autocomplete="off" class="form-control mx-auto w-50" name="example_media" placeholder="Update Example Media (optional)" type="text">
+
+            <div class="row">
+                <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ word["example_media"] }}</h4></div>
+                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="example_media" placeholder="Update Example Media (optional)" type="text"></div>
             </div>
+
             <button class="btn btn-primary" type="submit">Submit</button>
         </form>
     </div>
+
 
 {% endblock %}
