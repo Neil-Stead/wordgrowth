@@ -2,7 +2,6 @@ from flask import Flask, render_template, g, redirect, request, session, url_for
 from flask_session import Session
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
-
 from helpers import apology, get_db_connection, login_required, extract_youtube_id
 
 # Configure app
@@ -32,13 +31,11 @@ def show_words():
         cursor.execute(
             "SELECT * FROM users WHERE id = ?", [session['user_id']]
             )
-        conn.commit()
         user = cursor.fetchone()
 
         cursor.execute(
             "SELECT * FROM vocabulary WHERE user_id = ?", [session['user_id']]
             )
-        conn.commit()
         rows = cursor.fetchall()
         
         return render_template("index.html", rows=rows, user=user)
@@ -68,8 +65,6 @@ def register():
         cursor.execute(
             "SELECT * FROM users WHERE username = ?", [request.form.get("username")]
         )
-        conn.commit()
-
         users = cursor.fetchall()
 
         # If username already exists apology and ask to choose another username
@@ -120,8 +115,6 @@ def login():
         cursor.execute(
             "SELECT * FROM users WHERE username = ?", [request.form.get("username")]
         )
-        conn.commit()
-
         rows = cursor.fetchall()
 
         # Ensure username exists and password is correct
@@ -170,14 +163,14 @@ def account():
             return apology("confirmation does not match new password", 403)
 
         # Query database for password
-        rows = cursor.execute(
+        cursor.execute(
             "SELECT * FROM users WHERE id = ?", [session["user_id"]]
         )
-        conn.commit()
+        user = cursor.fetchone()
 
         # check password is correct
-        if len(rows) != 1 or not check_password_hash(
-            rows[0]["password_hash"], request.form.get("current_password")
+        if not user or not check_password_hash(
+            user["password_hash"], request.form.get("current_password")
         ):
             return apology("invalid password", 403)
 
@@ -193,7 +186,7 @@ def account():
             conn.commit()
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = user["id"]
 
         return redirect("/")
 
@@ -205,7 +198,6 @@ def account():
         cursor.execute(
             "SELECT * FROM users WHERE id = ?", [session["user_id"]]
             )
-        conn.commit()
         username = cursor.fetchone()
 
         return render_template("/account.html", username=username)
@@ -231,9 +223,8 @@ def new_word():
                 "INSERT INTO vocabulary (user_id, word, definition, notes, example_sentence, example_media) VALUES (?, ?, ?, ?, ?, ?)", [session["user_id"], request.form.get("word"), request.form.get("definition"), request.form.get("notes"), request.form.get("example_sentence"), request.form.get("example_media")]
                 )
             conn.commit()
-
+            
             new_id = cursor.lastrowid
-            conn.commit()
                 
         return redirect(url_for("word_view", word_id=new_id))
 
@@ -257,13 +248,11 @@ def word_view(word_id):
 
         print(vid_id)
 
-        return  render_template("word_view.html", word=word, vid_id=vid_id)
+        return  render_template("word_view.html", word=word, vid_id=vid_id, delete=delete)
     
     else:
-        return  render_template("word_view.html", word=word)
-
-
-
+        return  render_template("word_view.html", word=word, delete=delete)
+    
 
 @app.route("/word_edit/<int:word_id>", methods=["POST", "GET"])
 @login_required
@@ -302,5 +291,3 @@ def word_edit(word_id):
     else:
   
         return  render_template("word_edit.html", word=word)
-
-
