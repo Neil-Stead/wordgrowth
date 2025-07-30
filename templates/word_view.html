@@ -6,7 +6,7 @@
             <h2>{{ word["word"] }}</h2>
         </div>
         <div>
-            <h3>{{ word["definition"] }}</h3>
+            <h4><strong>Definition:</strong> {{ word["definition"] }}</h3>
         </div>
         <div>    
             {% if word["notes"] %}
@@ -27,6 +27,11 @@
                 {% endif %}
             {% endif %}
         <div>
+            <div class="mb-3">
+                <form action="{{ url_for('word_view', word_id=word['id']) }}" method="post">
+                <button class="btn btn-success" name="action" value="done" type="submit">Done</button>
+                </form>
+            </div>
             <div class="mb-3">
                 <form action="{{ url_for('word_view', word_id=word['id']) }}" method="post">
                 <button class="btn btn-warning" name="action" value="edit" type="submit">Edit</button>

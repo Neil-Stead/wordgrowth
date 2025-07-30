@@ -250,6 +250,9 @@ def word_view(word_id):
     if request.method == "POST":
         action = request.form.get("action")
 
+        if action == "done":
+            return redirect("/")
+
         if action == "edit":
             return redirect(url_for("word_edit", word_id=word_id))
 
