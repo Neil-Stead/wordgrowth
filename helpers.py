@@ -1,6 +1,7 @@
 from flask import redirect, render_template, session, g, url_for
 from functools import wraps
 import sqlite3, re
+from newspaper import Article
 
 DATABASE = "db/vocab.db"
 
@@ -46,3 +47,22 @@ def apology(message, code=400):
 def extract_youtube_id(url):
     match = re.search(r'(?:v=|\/embed\/|\.be\/)([\w\-]{11})', url)
     return match.group(1) if match else None
+
+def get_article_data(url):
+    article = Article(url)
+    article.download()
+    article.parse()
+    article.nlp()
+    return {
+        'title': article.title,
+        'summary': article.summary,
+        'text': article.text[:500]  # optional: just first few lines
+    }
+
+def classify_media_url(url):
+    url = url.lower()
+    if 'youtube.com' in url or 'youtu.be' in url or 'vimeo.com' in url:
+        return 'video'
+    return 'article'
+
+

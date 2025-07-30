@@ -1,3 +1,3 @@
 CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username VARCHAR(22) NOT NULL UNIQUE, email VARCHAR(44) NOT NULL UNIQUE, password_hash VARCHAR(20) NOT NULL); 
 
-CREATE TABLE IF NOT EXISTS "vocabulary" (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, word TEXT NOT NULL, definition TEXT, notes TEXT, example_sentence TEXT, example_media TEXT, FOREIGN KEY (user_id) REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS "vocabulary" (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, word TEXT NOT NULL, definition TEXT, notes TEXT, example_sentence TEXT, example_media TEXT, media_type TEXT, article_excerpt TEXT, FOREIGN KEY (user_id) REFERENCES users(id));

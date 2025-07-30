@@ -210,17 +210,36 @@ def new_word():
     cursor = conn.cursor()
 
     if request.method == "POST":
-        if not request.form.get("word"):
+        word = request.form['word']
+        definition = request.form['definition']
+        example_sentence = request.form.get('example_sentence')
+        media_url = request.form.get('example_media')
+        media_type = classify_media_url(media_url)
+        article_excerpt = ''
+        vid_id = ''
+
+        if not word:
             return apology("must provide word")
             
         # Ensure definition was submitted
-        elif not request.form.get("definition"):
+        if not definition:
             return apology("must provide definition", 400)
+        
+        if media_type == 'video':
+            vid_id = extract_youtube_id(media_url)
+            media_url = vid_id
+        elif media_type == 'article':
+            try:
+                article_data = get_article_data(media_url)
+                article_excerpt = article_data['summary'] or article_data['text']
+            except Exception as e:
+                print("Failed to parse article:", e)
+                article_excerpt = '[Could not load article content]'
 
         else:
         # Insert new word into database
             cursor.execute(
-                "INSERT INTO vocabulary (user_id, word, definition, notes, example_sentence, example_media) VALUES (?, ?, ?, ?, ?, ?)", [session["user_id"], request.form.get("word"), request.form.get("definition"), request.form.get("notes"), request.form.get("example_sentence"), request.form.get("example_media")]
+                "INSERT INTO vocabulary (user_id, word, definition, notes, example_sentence, example_media, media_type, article_excerpt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [session["user_id"], word, definition, request.form.get("notes"), example_sentence, media_url, media_type, article_excerpt]
                 )
             conn.commit()
             
@@ -248,10 +267,10 @@ def word_view(word_id):
 
         print(vid_id)
 
-        return  render_template("word_view.html", word=word, vid_id=vid_id, delete=delete)
+        return  render_template("word_view.html", word=word, vid_id=vid_id)
     
     else:
-        return  render_template("word_view.html", word=word, delete=delete)
+        return  render_template("word_view.html", word=word)
     
 
 @app.route("/word_edit/<int:word_id>", methods=["POST", "GET"])
