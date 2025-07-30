@@ -2,7 +2,7 @@ from flask import Flask, render_template, g, redirect, request, session, url_for
 from flask_session import Session
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, get_db_connection, login_required, extract_youtube_id, classify_media_url, get_article_data
+from helpers import apology, get_db_connection, login_required, extract_youtube_id, classify_media_url
 
 # Configure app
 app = Flask(__name__)
@@ -215,7 +215,7 @@ def new_word():
         example_sentence = request.form.get('example_sentence')
         media_url = request.form.get('example_media')
         media_type = classify_media_url(media_url)
-        article_excerpt = ''
+        article_excerpt = media_url
 
         if not word:
             return apology("must provide word", 400)
@@ -258,12 +258,7 @@ def word_view(word_id):
         return  render_template("word_view.html", word=word, vid_id=vid_id)
     
     elif word['media_type'] == 'article':
-#        try:
-        article_data = get_article_data(word['example_media'])
-        article_excerpt = article_data['summary'] or article_data['text']
-#        except Exception as e:
-#            print("Failed to parse article:", e)
-#            article_excerpt = '[Could not load article content]'
+        article_excerpt = word["article_excerpt"]
             
         return render_template("word_view.html", word=word, article_excerpt=article_excerpt)
     
@@ -287,9 +282,11 @@ def word_edit(word_id):
         updated_notes = request.form.get("notes") or word["notes"]
         updated_example_sentence = request.form.get("example_sentence") or word["example_sentence"]
         updated_example_media = request.form.get("example_media") or word["example_media"]
-
+        updated_media_type = classify_media_url(updated_example_media)
+        updated_article_excerpt = updated_example_media
+        
         cursor.execute(
-            "UPDATE vocabulary SET user_id = ?, word = ?, definition = ?, notes = ?, example_sentence = ?, example_media = ? WHERE id = ?", 
+            "UPDATE vocabulary SET user_id = ?, word = ?, definition = ?, notes = ?, example_sentence = ?, example_media = ?, media_type = ?, article_excerpt = ? WHERE id = ?", 
                 [
                 session["user_id"], 
                 updated_word, 
@@ -297,6 +294,8 @@ def word_edit(word_id):
                 updated_notes, 
                 updated_example_sentence, 
                 updated_example_media, 
+                updated_media_type,
+                updated_article_excerpt,
                 word_id
                 ]
             )
