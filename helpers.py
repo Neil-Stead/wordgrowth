@@ -48,6 +48,12 @@ def extract_youtube_id(url):
     match = re.search(r'(?:v=|\/embed\/|\.be\/)([\w\-]{11})', url)
     return match.group(1) if match else None
 
+def classify_media_url(url):
+    url = url.lower()
+    if 'youtube.com' in url or 'youtu.be' in url or 'vimeo.com' in url:
+        return 'video'
+    return 'article'
+
 def get_article_data(url):
     article = Article(url)
     article.download()
@@ -58,11 +64,3 @@ def get_article_data(url):
         'summary': article.summary,
         'text': article.text[:500]  # optional: just first few lines
     }
-
-def classify_media_url(url):
-    url = url.lower()
-    if 'youtube.com' in url or 'youtu.be' in url or 'vimeo.com' in url:
-        return 'video'
-    return 'article'
-
-

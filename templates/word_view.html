@@ -20,7 +20,12 @@
         </div>
         <div>
             {% if word["example_media"] %}
-            <iframe width="300" height="200" src="https://www.youtube.com/embed/{{ word['media_url'] }}" frameborder="0" allowfullscreen></iframe>
+                {% if word["media_type"] == 'video' %}
+                <iframe width="300" height="200" src="https://www.youtube.com/embed/{{ vid_id }}" frameborder="0" allowfullscreen></iframe>
+                {% else %}
+                <p>{{ article_excerpt }}</p>
+                <iframe width="300" height="200" src="https://www.youtube.com/embed/{{ vid_id }}" frameborder="0" allowfullscreen></iframe>
+                {% endif %}
             {% endif %}
         <div>
             <button><a href="{{ url_for('word_edit', word_id=word['id']) }}">Edit</a></button>

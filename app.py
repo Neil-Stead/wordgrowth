@@ -2,7 +2,7 @@ from flask import Flask, render_template, g, redirect, request, session, url_for
 from flask_session import Session
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, get_db_connection, login_required, extract_youtube_id
+from helpers import apology, get_db_connection, login_required, extract_youtube_id, classify_media_url, get_article_data
 
 # Configure app
 app = Flask(__name__)
@@ -216,25 +216,13 @@ def new_word():
         media_url = request.form.get('example_media')
         media_type = classify_media_url(media_url)
         article_excerpt = ''
-        vid_id = ''
 
         if not word:
-            return apology("must provide word")
+            return apology("must provide word", 400)
             
         # Ensure definition was submitted
         if not definition:
             return apology("must provide definition", 400)
-        
-        if media_type == 'video':
-            vid_id = extract_youtube_id(media_url)
-            media_url = vid_id
-        elif media_type == 'article':
-            try:
-                article_data = get_article_data(media_url)
-                article_excerpt = article_data['summary'] or article_data['text']
-            except Exception as e:
-                print("Failed to parse article:", e)
-                article_excerpt = '[Could not load article content]'
 
         else:
         # Insert new word into database
@@ -262,16 +250,25 @@ def word_view(word_id):
     if word is None:
         return apology("word not found")
     
-    if word["example_media"]:
+    if word['media_type'] == 'video':
         vid_id = extract_youtube_id(word["example_media"])
 
         print(vid_id)
 
         return  render_template("word_view.html", word=word, vid_id=vid_id)
     
+    elif word['media_type'] == 'article':
+#        try:
+        article_data = get_article_data(word['example_media'])
+        article_excerpt = article_data['summary'] or article_data['text']
+#        except Exception as e:
+#            print("Failed to parse article:", e)
+#            article_excerpt = '[Could not load article content]'
+            
+        return render_template("word_view.html", word=word, article_excerpt=article_excerpt)
+    
     else:
         return  render_template("word_view.html", word=word)
-    
 
 @app.route("/word_edit/<int:word_id>", methods=["POST", "GET"])
 @login_required
