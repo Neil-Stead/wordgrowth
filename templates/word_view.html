@@ -21,13 +21,22 @@
         <div>
             {% if word["example_media"] %}
                 {% if word["media_type"] == 'video' %}
-                <iframe width="300" height="200" src="https://www.youtube.com/embed/{{ vid_id }}" frameborder="0" allowfullscreen></iframe>
+                <iframe width="600" height="400" src="https://www.youtube.com/embed/{{ vid_id }}" frameborder="0" allowfullscreen></iframe>
                 {% else %}
                 <p>{{ article_excerpt }}</p>
                 {% endif %}
             {% endif %}
         <div>
-            <button><a href="{{ url_for('word_edit', word_id=word['id']) }}">Edit</a></button>
+            <div class="mb-3">
+                <form action="{{ url_for('word_view', word_id=word['id']) }}" method="post">
+                <button class="btn btn-warning" name="action" value="edit" type="submit">Edit</button>
+                </form>
+            </div>
+            <div class="mb-3">
+                <form action="{{ url_for('word_view', word_id=word['id']) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this word?');">
+                    <button class="btn btn-danger" name="action" value="delete" type="submit">Delete</button>
+                </form>
+            </div>
         </div>
     </section>
 {% endblock %}

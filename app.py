@@ -239,7 +239,7 @@ def new_word():
         return render_template("new_word.html")
     
 
-@app.route("/word_view/<int:word_id>")
+@app.route("/word_view/<int:word_id>", methods=["POST", "GET"])
 @login_required
 def word_view(word_id):
     conn = get_db_connection()
@@ -247,23 +247,39 @@ def word_view(word_id):
     cursor.execute("SELECT * FROM vocabulary WHERE id=?", [word_id])
     word = cursor.fetchone()
 
-    if word is None:
-        return apology("word not found")
-    
-    if word['media_type'] == 'video':
-        vid_id = extract_youtube_id(word["example_media"])
+    if request.method == "POST":
+        action = request.form.get("action")
 
-        print(vid_id)
+        if action == "edit":
+            return redirect(url_for("word_edit", word_id=word_id))
 
-        return  render_template("word_view.html", word=word, vid_id=vid_id)
-    
-    elif word['media_type'] == 'article':
-        article_excerpt = word["article_excerpt"]
-            
-        return render_template("word_view.html", word=word, article_excerpt=article_excerpt)
+        elif action == "delete":
+            cursor.execute(
+                "DELETE FROM vocabulary WHERE id = ?", [word_id]
+            )
+            conn.commit()
+            return redirect("/")
     
     else:
-        return  render_template("word_view.html", word=word)
+
+        if word is None:
+            return apology("word not found")
+        
+        if word['media_type'] == 'video':
+            vid_id = extract_youtube_id(word["example_media"])
+
+            print(vid_id)
+
+            return  render_template("word_view.html", word=word, vid_id=vid_id)
+        
+        elif word['media_type'] == 'article':
+            article_excerpt = word["article_excerpt"]
+                
+            return render_template("word_view.html", word=word, article_excerpt=article_excerpt)
+        
+        else:
+            return  render_template("word_view.html", word=word)
+        
 
 @app.route("/word_edit/<int:word_id>", methods=["POST", "GET"])
 @login_required
@@ -284,7 +300,7 @@ def word_edit(word_id):
         updated_example_media = request.form.get("example_media") or word["example_media"]
         updated_media_type = classify_media_url(updated_example_media)
         updated_article_excerpt = updated_example_media
-        
+
         cursor.execute(
             "UPDATE vocabulary SET user_id = ?, word = ?, definition = ?, notes = ?, example_sentence = ?, example_media = ?, media_type = ?, article_excerpt = ? WHERE id = ?", 
                 [
