@@ -21,9 +21,9 @@
         <div>
             {% if word["example_media"] %}
                 {% if word["media_type"] == 'video' %}
-                <iframe width="600" height="400" src="https://www.youtube.com/embed/{{ vid_id }}" frameborder="0" allowfullscreen></iframe>
+                    <iframe width="600" height="400" src="https://www.youtube.com/embed/{{ vid_id }}" frameborder="0" allowfullscreen></iframe>
                 {% else %}
-                <p>{{ article_excerpt }}</p>
+                    <p>{{ article_excerpt | safe }}</p>
                 {% endif %}
             {% endif %}
         <div>

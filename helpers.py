@@ -52,3 +52,15 @@ def classify_media_url(url):
     if 'youtube.com' in url or 'youtu.be' in url or 'vimeo.com' in url:
         return 'video'
     return 'article'
+
+def highlight_word(text, word):
+    """
+    Highlight all case-insensitive instances of 'word' in 'text'
+    using <mark> tags. Only matches whole words.
+    """
+    if not text or not word:
+        return text
+
+    pattern = r'\b({})\b'.format(re.escape(word))
+    highlighted = re.sub(pattern, r'<strong>\1</strong>', text, flags=re.IGNORECASE)
+    return highlighted

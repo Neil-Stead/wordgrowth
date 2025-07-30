@@ -2,7 +2,7 @@ from flask import Flask, render_template, g, redirect, request, session, url_for
 from flask_session import Session
 import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, get_db_connection, login_required, extract_youtube_id, classify_media_url
+from helpers import apology, get_db_connection, login_required, extract_youtube_id, classify_media_url, highlight_word
 
 # Configure app
 app = Flask(__name__)
@@ -273,7 +273,9 @@ def word_view(word_id):
             return  render_template("word_view.html", word=word, vid_id=vid_id)
         
         elif word['media_type'] == 'article':
-            article_excerpt = word["article_excerpt"]
+            article_excerpt = highlight_word(word["article_excerpt"], word["word"])
+
+            print(article_excerpt)
                 
             return render_template("word_view.html", word=word, article_excerpt=article_excerpt)
         
