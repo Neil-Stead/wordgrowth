@@ -1,6 +1,7 @@
 from flask import redirect, render_template, session, g, url_for
 from functools import wraps
 import sqlite3, re
+from urllib.parse import urlparse, parse_qs
 
 DATABASE = "db/vocab.db"
 
@@ -46,6 +47,58 @@ def apology(message, code=400):
 def extract_youtube_id(url):
     match = re.search(r'(?:v=|\/embed\/|\.be\/)([\w\-]{11})', url)
     return match.group(1) if match else None
+
+def convert_youtube_url_to_embed(url):
+    """
+    Converts a YouTube URL into an embeddable format,
+    preserving timestamp if present.
+    Returns a full embed URL (string), or None if invalid.
+    """
+    if not url:
+        return None
+    
+    match = re.search(r'(?:youtu\.be/|v=|embed/)([a-zA-Z0-9_-]{11})', url)
+    if not match:
+        return None
+
+    video_id = match.group(1)
+
+    # Parse timestamp from URL query (e.g., ?t=2264)
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+    timestamp = query_params.get('t', [None])[0]
+
+    # Build embed URL
+    embed_url = f"https://www.youtube.com/embed/{video_id}"
+    if timestamp and timestamp.isdigit():
+        embed_url += f"?start={timestamp}"
+
+    return embed_url
+
+def extract_youtube_id_and_timestamp(url):
+    """
+    Extracts the YouTube video ID and optional timestamp (start time in seconds)
+    from various YouTube URL formats.
+    
+    Returns a dictionary: { 'video_id': '...', 'start_time': '...' or None }
+    """
+    if not url:
+        return {'video_id': None, 'start_time': None}
+
+    # Extract video ID (works with youtu.be, watch?v=, embed/)
+    match = re.search(r'(?:youtu\.be/|v=|embed/)([a-zA-Z0-9_-]{11})', url)
+    video_id = match.group(1) if match else None
+
+    # Parse the timestamp (?t=2264)
+    parsed_url = urlparse(url)
+    query_params = parse_qs(parsed_url.query)
+    timestamp = query_params.get('t', [None])[0]
+
+    return {
+        'video_id': video_id,
+        'start_time': timestamp
+    }
+
 
 def classify_media_url(url):
     url = url.lower()

@@ -1,8 +1,7 @@
 from flask import Flask, render_template, g, redirect, request, session, url_for
 from flask_session import Session
-import sqlite3
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, get_db_connection, login_required, extract_youtube_id, classify_media_url, highlight_word
+from helpers import apology, get_db_connection, login_required, extract_youtube_id_and_timestamp, classify_media_url, highlight_word
 
 # Configure app
 app = Flask(__name__)
@@ -27,7 +26,6 @@ def show_words():
         return redirect(url_for("login"))
     
     else:
-
         cursor.execute(
             "SELECT * FROM users WHERE id = ?", [session['user_id']]
             )
@@ -97,7 +95,6 @@ def login():
     cursor = conn.cursor()
 
     """Log user in"""
-
     # Forget any user_id
     session.clear()
 
@@ -175,7 +172,6 @@ def account():
             return apology("invalid password", 403)
 
         # Update password in database
-
         else:
 
             new_password_hash = generate_password_hash(request.form.get("new_password"))
@@ -194,7 +190,6 @@ def account():
     else:
 
         # Display users username
-
         cursor.execute(
             "SELECT * FROM users WHERE id = ?", [session["user_id"]]
             )
@@ -269,16 +264,22 @@ def word_view(word_id):
             return apology("word not found")
         
         if word['media_type'] == 'video':
-            vid_id = extract_youtube_id(word["example_media"])
 
-            print(vid_id)
+            media_url = word["example_media"]
 
-            return  render_template("word_view.html", word=word, vid_id=vid_id)
+            media_data = extract_youtube_id_and_timestamp(media_url)
+
+            video_id = media_data['video_id']
+            start_time = media_data['start_time']
+
+            embed_url = f"https://www.youtube.com/embed/{video_id}"
+            if start_time:
+                embed_url += f"?start={start_time}"
+
+            return  render_template("word_view.html", word=word, embed_url=embed_url)
         
         elif word['media_type'] == 'article':
             article_excerpt = highlight_word(word["article_excerpt"], word["word"])
-
-            print(article_excerpt)
                 
             return render_template("word_view.html", word=word, article_excerpt=article_excerpt)
         
@@ -295,7 +296,6 @@ def word_edit(word_id):
     word = cursor.fetchone()
 
     if request.method == "POST":
-        # update word into database
 
         # Use the submitted value if provided; otherwise, keep the old value
         updated_word = request.form.get("word") or word["word"]
