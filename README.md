@@ -4,6 +4,8 @@
 WordGrowth is a study tool for intermediate to advanced language learners of any language. The objective of the tool is for learners to make a note of new words that they encounter, and to add real life examples of the word to the tool either in video or text format.
 
 ## Features
+- Register an account
+- Change password on account
 - Add new vocabulary words with definitions and example sentences
 - Attach YouTube videos or article excerpts for real-world usage
 - Highlight keywords inside article excerpts
@@ -11,7 +13,6 @@ WordGrowth is a study tool for intermediate to advanced language learners of any
 - Secure login and user-based word storage
 
 ## Usage
-
 - Navigate to `/register` to create a new account
 - Use `/login` to login - persistant login is available
 - Add new words using the `/new_word` form
@@ -20,14 +21,12 @@ WordGrowth is a study tool for intermediate to advanced language learners of any
 - View, edit, and delete words through your word list on the `/index` page
 
 ## Built With
-
 - Python / Flask
 - SQLite3
 - Jinja2 templating
 - Bootstrap 5 (for styling)
 
 ## Roadmap
-
 - [ ] Add additional realworld examples for multiple examples in one card
 - [ ] Automated pulling of article excerpts from user input url
 - [ ] Add search bar for index page
@@ -37,5 +36,4 @@ WordGrowth is a study tool for intermediate to advanced language learners of any
 - [ ] Sharing of words and examples between users
 
 ## Author
-
 Built by Neil Stead https://github.com/neil-stead

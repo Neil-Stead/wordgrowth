@@ -75,6 +75,8 @@ def register():
                     "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)", [request.form.get("username"), request.form.get("email"), generate_password_hash(request.form.get("password"))]
                     )
                 conn.commit()
+
+                return redirect(url_for("login"))
                 
         else:
             # Insert new user without email into database
@@ -82,8 +84,8 @@ def register():
                     "INSERT INTO users (username, password_hash) VALUES (?, ?)", [request.form.get("username"), generate_password_hash(request.form.get("password"))]
                     )
                 conn.commit()
-                
-        return redirect("/login.html")
+
+                return redirect(url_for("login"))
 
     else:
         return render_template("register.html")
