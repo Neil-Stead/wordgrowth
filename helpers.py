@@ -112,6 +112,7 @@ def highlight_word(text, word):
     using <mark> tags. Only matches whole words.
     """
     if not text or not word:
-        return 
+        return text
     
-    return text.replace(word, f"<strong>{word}</strong>")
+    pattern = re.compile(re.escape(word), flags=re.IGNORECASE)
+    return pattern.sub(lambda m: f"<strong>{m.group(0)}</strong>", text)
