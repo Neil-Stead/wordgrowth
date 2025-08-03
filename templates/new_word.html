@@ -22,7 +22,35 @@
         <div class="mb-3">
             <input autocomplete="off" class="form-control mx-auto w-50" name="example_media" placeholder="Example Media (optional)" type="text">
         </div>
+        <div id="additional_media"></div>
+        <button class="btn btn-primary" type="button" id="add_media">Add More Media</button>
         <button class="btn btn-primary" type="submit">Submit</button>
     </form>
 </div>
+
+<script>
+    let mediacounter = 1;  // Start from 1 and increment
+
+    document.getElementById("add_media").addEventListener("click", add_media);
+
+    function add_media() {
+        mediacounter++;  // Increment first
+
+        // Create a wrapper div
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-3";
+
+        // Create the input field
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = "example_media_" + mediacounter;
+        input.placeholder = "Example Media (optional)";
+        input.className = "form-control mx-auto w-50";
+        input.autocomplete = "off";
+
+        // Append input to wrapper, then wrapper to the media container
+        wrapper.appendChild(input);
+        document.getElementById("additional_media").appendChild(wrapper);
+    }
+</script>
 {% endblock %}
