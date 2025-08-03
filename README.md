@@ -1,5 +1,5 @@
 # WordGrowth
-#### Video Demo: https://youtu.be/anLsciraAtg>
+#### Video Demo: https://youtu.be/anLsciraAtg
 #### Description:
 WordGrowth is a study tool for intermediate to advanced language learners of any language.
 
