@@ -63,3 +63,10 @@ Following are some future improvements that could be made.
 
 ## Author
 Built by Neil Stead https://github.com/neil-stead
+
+source venv/Scripts/activate
+
+    print(type(media_entries))           # Should print: <class 'list'>
+    print(type(media_entries[0]))        # Should print: <class 'sqlite3.Row'>
+    print(dict(media_entries[0]))        # Converts the first row into a normal Python dict
+    print(dict(media_entries[1]))        # Converts the first row into a normal Python dict

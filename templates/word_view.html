@@ -23,14 +23,18 @@
                 {% endif %}
             </div>
             <div>
-                {% if word["example_media"] %}
-                    {% if word["media_type"] == 'video' %}
+                {% if embed_urls %}
+                    {% for embed_url in embed_urls %}   
                         <iframe width="600" height="400" src="{{ embed_url }}" frameborder="0" allowfullscreen></iframe>
-                    {% else %}
-                        <p>{{ article_excerpt | safe }}</p>
-                    {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% if article_excerpts %}
+                    {% for article_excerpt in article_excerpts %} 
+                            <p>{{ article_excerpt | safe }}</p>
+                    {% endfor %}
                 {% endif %}
             <div>
+            <div id="additional_media"></div>
                 <div class="mb-3">
                     <form action="{{ url_for('word_view', word_id=word['id']) }}" method="post">
                     <button class="btn btn-success" name="action" value="done" type="submit">Done</button>
