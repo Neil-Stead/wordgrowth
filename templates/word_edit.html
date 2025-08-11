@@ -26,10 +26,34 @@
                 <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="example_sentence" placeholder="Update Example Sentence (optional)" type="text"></div>
             </div>
 
-            <div class="row">
-                <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ word["example_media"] }}</h4></div>
-                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="example_media" placeholder="Update Example Media (optional)" type="text"></div>
-            </div>
+            <!-- Insert loop to assess how many fields there are -->
+
+            {% for media in media_list %}
+
+                {% if media["media_type"] == 'video' %}
+
+                    <div class="row">
+                        <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["example_media"] }}</h4>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <input autocomplete="off" class="form-control" name="example_media[]" placeholder="Update Example Media (optional)" type="text">
+                            <input type="hidden" name="media_id[]" value="{{ media['id'] }}">
+                        </div>
+                    </div>
+
+                    {% else %}
+
+                    <div class="row">
+                        <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["article_excerpt"] }}</h4>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <input autocomplete="off" class="form-control" name="example_media[]" placeholder="Update Example Media (optional)" type="text">
+                            <input type="hidden" name="media_id[]" value="{{ media['id'] }}">
+                        </div>
+                    </div>
+                {% endif %}
+
+            {% endfor %}
 
             <button class="btn btn-primary" type="submit">Submit</button>
         </form>
