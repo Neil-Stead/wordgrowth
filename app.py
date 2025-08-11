@@ -342,10 +342,6 @@ def word_edit(word_id):
 
         media_ids = request.form.getlist("media_id[]")
         new_media_list = request.form.getlist("example_media[]")
-        print(media_list)
-        
-        print(media_list.count)
-
 
         # Use the submitted value if provided; otherwise, keep the old value
         updated_word = request.form.get("word") or word["word"]
