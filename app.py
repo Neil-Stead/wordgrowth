@@ -386,7 +386,6 @@ def word_edit(word_id):
                             "UPDATE media SET example_media = NULL, article_excerpt = ?, media_type = ? WHERE id = ?", 
                                 [media, new_type, media_id]
                             )
-                           
             conn.commit()
 
 

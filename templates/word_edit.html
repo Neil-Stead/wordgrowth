@@ -55,9 +55,10 @@
 
             {% endfor %}
 
-            <button class="btn btn-primary" type="submit">Submit</button>
+            <button class="btn btn-primary" value="submit" type="submit">Submit</button>
+            <a href="{{ url_for('word_view', word_id=word['id']) }}" class="btn btn-danger">Cancel</a>
         </form>
     </div>
 
 
-{% endblock %}
+{% endblock %}>
