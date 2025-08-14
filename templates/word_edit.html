@@ -1,64 +1,86 @@
 {% extends "layout.html" %}
 
 {% block main %}
-    <div class="container">
-        <form action="{{  url_for('word_edit', word_id=word['id'])  }}" method="post">
-            <div class="row">
-                <!-- column 1 -->
-                <div class="col-6 text-end"><h4>{{ word["word"] }}</h4></div>
+<div class="container">
+    <form action="{{  url_for('word_edit', word_id=word['id'])  }}" method="post">
+        <div class="row">
+            <!-- column 1 -->
+            <div class="col-6 text-end"><h4>{{ word["word"] }}</h4></div>
 
-                <!-- column 2 -->
-                <div class="col-6 mb-3"><input autocomplete="off" autofocus class="form-control" name="word" placeholder="Update Word (optional)" type="text"></div>
-            </div>
+            <!-- column 2 -->
+            <div class="col-6 mb-3"><input autocomplete="off" autofocus class="form-control" name="word" placeholder="Update Word (optional)" type="text"></div>
+        </div>
 
-            <div class="row">
-                <div class="col-6 text-end"><h4><strong>Definition:</strong> {{ word["definition"] }}</h4></div>
-                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="definition" placeholder="Update Definition (optional)" type="text"></div>
-            </div>
+        <div class="row">
+            <div class="col-6 text-end"><h4><strong>Definition:</strong> {{ word["definition"] }}</h4></div>
+            <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="definition" placeholder="Update Definition (optional)" type="text"></div>
+        </div>
 
-            <div class="row">
-                <div class="col-6 text-end"><h4><strong>Notes:</strong> {{ word["notes"] }}</h4></div>
-                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="notes" placeholder="Update notes (optional)" type="text"></div>
-            </div>
+        <div class="row">
+            <div class="col-6 text-end"><h4><strong>Notes:</strong> {{ word["notes"] }}</h4></div>
+            <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="notes" placeholder="Update notes (optional)" type="text"></div>
+        </div>
 
-            <div class="row">
-                <div class="col-6 text-end"><h4><strong>Example Sentence:</strong> {{ word["example_sentence"] }}</h4></div>
-                <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="example_sentence" placeholder="Update Example Sentence (optional)" type="text"></div>
-            </div>
+        <div class="row">
+            <div class="col-6 text-end"><h4><strong>Example Sentence:</strong> {{ word["example_sentence"] }}</h4></div>
+            <div class="col-6 mb-3"><input autocomplete="off" class="form-control" name="example_sentence" placeholder="Update Example Sentence (optional)" type="text"></div>
+        </div>
 
-            <!-- Insert loop to assess how many fields there are -->
+        <!-- Insert loop to assess how many fields there are -->
 
-            {% for media in media_list %}
+        {% for media in media_list %}
 
-                {% if media["media_type"] == 'video' %}
+            {% if media["media_type"] == 'video' %}
 
-                    <div class="row">
-                        <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["example_media"] }}</h4>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <input autocomplete="off" class="form-control" name="example_media[]" placeholder="Update Example Media (optional)" type="text">
-                            <input type="hidden" name="media_id[]" value="{{ media['id'] }}">
-                        </div>
+                <div class="row">
+                    <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["example_media"] }}</h4>
                     </div>
-
-                    {% else %}
-
-                    <div class="row">
-                        <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["article_excerpt"] }}</h4>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <input autocomplete="off" class="form-control" name="example_media[]" placeholder="Update Example Media (optional)" type="text">
-                            <input type="hidden" name="media_id[]" value="{{ media['id'] }}">
-                        </div>
+                    <div class="col-6 mb-3">
+                        <input autocomplete="off" class="form-control" name="example_media[]" placeholder="Update Example Media (optional)" type="text">
+                        <input type="hidden" name="media_id[]" value="{{ media['id'] }}">
                     </div>
-                {% endif %}
+                </div>
 
-            {% endfor %}
+                {% else %}
 
-            <button class="btn btn-primary" value="submit" type="submit">Submit</button>
-            <a href="{{ url_for('word_view', word_id=word['id']) }}" class="btn btn-danger">Cancel</a>
-        </form>
-    </div>
+                <div class="row">
+                    <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["article_excerpt"] }}</h4>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <input autocomplete="off" class="form-control" name="example_media[]" placeholder="Update Example Media (optional)" type="text">
+                        <input type="hidden" name="media_id[]" value="{{ media['id'] }}">
+                    </div>
+                </div>
+            {% endif %}
+
+        {% endfor %}
+        <div id="additional_media"></div>
+        <button class="btn btn-primary" type="button" id="add_media">Add More Media</button>
+        <button class="btn btn-primary" value="submit" type="submit">Submit</button>
+        <a href="{{ url_for('word_view', word_id=word['id']) }}" class="btn btn-danger">Cancel</a>
+    </form>
+</div>
+<script>
+    document.getElementById("add_media").addEventListener("click", add_media);
+
+    function add_media() {
+        // Create a wrapper div
+        const wrapper = document.createElement("div");
+        wrapper.className = "mb-3";
+
+        // Create the input field
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = "additional_media[]";
+        input.placeholder = "Add Example Media (optional)";
+        input.className = "form-control mx-auto w-50";
+        input.autocomplete = "off";
+
+        // Append input to wrapper, then wrapper to the media container
+        wrapper.appendChild(input);
+        document.getElementById("additional_media").appendChild(wrapper);
+    }
+</script>
 
 
 {% endblock %}>

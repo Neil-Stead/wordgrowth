@@ -340,8 +340,10 @@ def word_edit(word_id):
 
     if request.method == "POST":
 
+        # get the db lists for media and media ids (media_ids returned as a hidden item from db with new updated media example)
         media_ids = request.form.getlist("media_id[]")
         new_media_list = request.form.getlist("example_media[]")
+        additional_media_list = request.form.getlist("additional_media[]")
 
         # Use the submitted value if provided; otherwise, keep the old value
         updated_word = request.form.get("word") or word["word"]
@@ -349,10 +351,32 @@ def word_edit(word_id):
         updated_notes = request.form.get("notes") or word["notes"]
         updated_example_sentence = request.form.get("example_sentence") or word["example_sentence"]
 
+        # if there are additional media items added in the edit add them to the media db
+        if additional_media_list:
+            
+            for media in additional_media_list:
+                media_type = classify_media_url(media)
+                
+                if media_type == 'article':
+                    
+                    cursor.execute(
+                        "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [word_id, media_type, media]
+                        )
+                    conn.commit()
+
+                else:
+                    cursor.execute(
+                        "INSERT INTO media (word_id, example_media, media_type) VALUES (?, ?, ?)", [word_id, media, media_type]
+                        )
+            
+            conn.commit()
+
+        # if media items have been replaced in the edit relpace them in the db
         if new_media_list:
 
+            # keep the media id and media together
             for media_id, media in zip(media_ids, new_media_list):
-                
+                # check list to see if media id is in the media list
                 original = next((m for m in media_list if m["id"] == int(media_id)), None)
                 if not media.strip():
                 # Keep old value
@@ -360,6 +384,7 @@ def word_edit(word_id):
                 
                 new_type = classify_media_url(media)
 
+                # check if the media type (video or article) has changed and if so update the db
                 if new_type == original:
 
                     if new_type == 'video':
@@ -388,7 +413,7 @@ def word_edit(word_id):
                             )
             conn.commit()
 
-
+        # update the vocabulary table in the database
         cursor.execute(
             "UPDATE vocabulary SET word = ?, definition = ?, notes = ?, example_sentence = ? WHERE id = ?", 
                 [
