@@ -211,7 +211,6 @@ def new_word():
         definition = request.form['definition']
         example_sentence = request.form.get('example_sentence')
         media_list = request.form.getlist("example_media[]")
-        print(media_list)
 
         # Ensure word was submitted
         if not word:
@@ -243,7 +242,6 @@ def new_word():
                         new_media_id = cursor.lastrowid
 
                     else:
-                        
                         cursor.execute(
                             "INSERT INTO media (word_id, example_media, media_type) VALUES (?, ?, ?)", [new_id, sample, media_type]
                             )
@@ -282,6 +280,7 @@ def word_view(word_id):
             cursor.execute(
                 "DELETE FROM vocabulary WHERE id = ?", [word_id]
             )
+            # Shall I delete from media here too ?????
             conn.commit()
             return redirect("/")
     
@@ -291,10 +290,10 @@ def word_view(word_id):
             return apology("word not found")
         
         # get the media entries associated with this word
-
         if not media_entries:
             return  render_template("word_view.html", word=word)
         
+        # parse the url for videos and timestamp and bold the word in article excerpts        
         else:
             embed_urls = []
             article_excerpts = []
@@ -303,8 +302,7 @@ def word_view(word_id):
 
                 if entry["media_type"] == 'video':
 
-                    # parse and set the url for videos and pass to the list
-            
+                    # parse and set the url for videos and pass to the list  
                     media_data = extract_youtube_id_and_timestamp(entry["example_media"])
 
                     video_id = media_data['video_id']
@@ -342,7 +340,7 @@ def word_edit(word_id):
 
         # get the db lists for media and media ids (media_ids returned as a hidden item from db with new updated media example)
         media_ids = request.form.getlist("media_id[]")
-        new_media_list = request.form.getlist("example_media[]")
+        replaced_media_list = request.form.getlist("example_media[]")
         additional_media_list = request.form.getlist("additional_media[]")
 
         # Use the submitted value if provided; otherwise, keep the old value
@@ -362,7 +360,6 @@ def word_edit(word_id):
                     cursor.execute(
                         "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [word_id, media_type, media]
                         )
-                    conn.commit()
 
                 else:
                     cursor.execute(
@@ -372,21 +369,22 @@ def word_edit(word_id):
             conn.commit()
 
         # if media items have been replaced in the edit relpace them in the db
-        if new_media_list:
+        if replaced_media_list:
 
             # keep the media id and media together
-            for media_id, media in zip(media_ids, new_media_list):
-                # check list to see if media id is in the media list
+            for media_id, media in zip(media_ids, replaced_media_list):
+                # check list to see if media id is in the existing media list
                 original = next((m for m in media_list if m["id"] == int(media_id)), None)
                 if not media.strip():
-                # Keep old value
+                # Keep old value, no need to update
                     continue  # skip updating this row entirely
                 
                 new_type = classify_media_url(media)
 
-                # check if the media type (video or article) has changed and if so update the db
+                # check if the media type has changed and update the db
                 if new_type == original:
 
+                    # media type is the same, so just update the media
                     if new_type == 'video':
                         cursor.execute(
                             "UPDATE media SET example_media = ? WHERE id = ?", 
@@ -399,6 +397,7 @@ def word_edit(word_id):
                                 [media, media_id]
                             )
 
+                # media type is different so update the media type aswell as the media
                 else:
                     if new_type == 'video':
                         cursor.execute(
