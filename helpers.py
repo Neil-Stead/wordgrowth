@@ -44,67 +44,82 @@ def apology(message, code=400):
 
     return render_template("apology.html", top=code, bottom=escape(message))
 
-def extract_youtube_id(url):
-    match = re.search(r'(?:v=|\/embed\/|\.be\/)([\w\-]{11})', url)
-    return match.group(1) if match else None
-
-def convert_youtube_url_to_embed(url):
-    """
-    Converts a YouTube URL into an embeddable format,
-    preserving timestamp if present.
-    Returns a full embed URL (string), or None if invalid.
-    """
-    if not url:
-        return None
-    
-    match = re.search(r'(?:youtu\.be/|v=|embed/)([a-zA-Z0-9_-]{11})', url)
-    if not match:
-        return None
-
-    video_id = match.group(1)
-
-    # Parse timestamp from URL query (e.g., ?t=2264)
-    parsed_url = urlparse(url)
-    query_params = parse_qs(parsed_url.query)
-    timestamp = query_params.get('t', [None])[0]
-
-    # Build embed URL
-    embed_url = f"https://www.youtube.com/embed/{video_id}"
-    if timestamp and timestamp.isdigit():
-        embed_url += f"?start={timestamp}"
-
-    return embed_url
-
-def extract_youtube_id_and_timestamp(url):
-    """
-    Extracts the YouTube video ID and optional timestamp (start time in seconds)
-    from various YouTube URL formats.
-    
-    Returns a dictionary: { 'video_id': '...', 'start_time': '...' or None }
-    """
-    if not url:
-        return {'video_id': None, 'start_time': None}
-
-    # Extract video ID (works with youtu.be, watch?v=, embed/)
-    match = re.search(r'(?:youtu\.be/|v=|embed/)([a-zA-Z0-9_-]{11})', url)
-    video_id = match.group(1) if match else None
-
-    # Parse the timestamp (?t=2264)
-    parsed_url = urlparse(url)
-    query_params = parse_qs(parsed_url.query)
-    timestamp = query_params.get('t', [None])[0]
-
-    return {
-        'video_id': video_id,
-        'start_time': timestamp
-    }
-
+def parse_time_string(t_str):
+    """Convert YouTube/Vimeo style times like '90', '1m30s' into seconds."""
+    if t_str.isdigit():
+        return int(t_str)
+    total_seconds = 0
+    match = re.match(r'(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?', t_str)
+    if match:
+        hours = int(match.group(1) or 0)
+        minutes = int(match.group(2) or 0)
+        seconds = int(match.group(3) or 0)
+        total_seconds = hours * 3600 + minutes * 60 + seconds
+    return total_seconds or None
 
 def classify_media_url(url):
-    url = url.lower()
-    if 'youtube.com' in url or 'youtu.be' in url or 'vimeo.com' in url:
-        return 'video'
-    return 'article'
+    """
+    Classify a media URL as video, article, or unknown.
+    If video, extract platform, video ID, and start time.
+    """
+    if not url:
+        return {
+            "media_type": "unknown",
+            "platform": None,
+            "video_id": None,
+            "start_time": None
+        }
+
+    parsed = urlparse(url)
+    hostname = parsed.hostname or ""
+    query_params = parse_qs(parsed.query)
+
+    # ---- YouTube ----
+    if "youtube.com" in hostname or "youtu.be" in hostname:
+        if "youtu.be" in hostname:
+            video_id = parsed.path.lstrip("/")
+        else:
+            video_id = query_params.get("v", [None])[0]
+
+        # Start time
+        start_time = None
+        if "t" in query_params:
+            start_time = parse_time_string(query_params["t"][0])
+        elif parsed.fragment.startswith("t="):
+            start_time = parse_time_string(parsed.fragment[2:])
+
+        return {
+            "media_type": "video",
+            "platform": "youtube",
+            "video_id": video_id,
+            "start_time": start_time
+        }
+
+    # ---- Vimeo ----
+    elif "vimeo.com" in hostname:
+        match = re.search(r"vimeo\.com/(?:video/)?(\d+)", url)
+        video_id = match.group(1) if match else None
+
+        start_time = None
+        if parsed.fragment.startswith("t="):
+            start_time = parse_time_string(parsed.fragment[2:])
+
+        return {
+            "media_type": "video",
+            "platform": "vimeo",
+            "video_id": video_id,
+            "start_time": start_time
+        }
+
+    # ---- Articles or other URLs ----
+    return {
+        "media_type": "article",
+        "platform": None,
+        "video_id": None,
+        "start_time": None,
+        "article_excerpt": url
+    }
+
 
 def highlight_word(text, word):
     """

@@ -33,7 +33,7 @@
             {% if media["media_type"] == 'video' %}
 
                 <div class="row">
-                    <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["example_media"] }}</h4>
+                    <div class="col-6 text-end"><h4><strong>Realworld Example:</strong> {{ media["platform"] }} + {{ media["video_id"] }}</h4>
                     </div>
                     <div class="col-6 mb-3">
                         <input autocomplete="off" class="form-control" name="example_media[]" placeholder="Update Example Media (optional)" type="text">
