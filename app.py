@@ -1,7 +1,7 @@
 from flask import Flask, render_template, g, redirect, request, session, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from helpers import apology, get_db_connection, login_required, extract_youtube_id_and_timestamp, classify_media_url, highlight_word
+from helpers import apology, get_db_connection, login_required, classify_media_url, highlight_word
 
 # Configure app
 app = Flask(__name__)
@@ -232,21 +232,27 @@ def new_word():
             # Insert media info into media table in database
             if media_list:
                 for sample in media_list:
-                    media_type = classify_media_url(sample)
-                    if media_type == 'article':
+                    media_info = classify_media_url(sample)
+                    if media_info["media_type"] == 'article':
                         
                         cursor.execute(
-                            "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [new_id, media_type, sample]
+                            "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [new_id, media_info["media_type"], sample]
                             )
-                        conn.commit()
-                        new_media_id = cursor.lastrowid
 
                     else:
                         cursor.execute(
-                            "INSERT INTO media (word_id, example_media, media_type) VALUES (?, ?, ?)", [new_id, sample, media_type]
+                            "INSERT INTO media (word_id, example_media, media_type, video_id, start_time, platform) VALUES (?, ?, ?, ?, ?, ?)", [
+                                new_id, 
+                                sample, 
+                                media_info["media_type"],
+                                media_info["video_id"],
+                                media_info["start_time"],
+                                media_info["platform"],
+                                ]
                             )
-                        conn.commit()
-                        new_media_id = cursor.lastrowid
+                
+                conn.commit()
+                new_media_id = cursor.lastrowid
 
                 return redirect(url_for("word_view", word_id=new_id, media_id=new_media_id))
             
@@ -302,11 +308,8 @@ def word_view(word_id):
 
                 if entry["media_type"] == 'video':
 
-                    # parse and set the url for videos and pass to the list  
-                    media_data = extract_youtube_id_and_timestamp(entry["example_media"])
-
-                    video_id = media_data['video_id']
-                    start_time = media_data['start_time']
+                    video_id = entry['video_id']
+                    start_time = entry['start_time']
 
                     embed_url = f"https://www.youtube.com/embed/{video_id}"
                     
@@ -353,19 +356,28 @@ def word_edit(word_id):
         if additional_media_list:
             
             for media in additional_media_list:
-                media_type = classify_media_url(media)
+                additional_media = classify_media_url(media)
                 
-                if media_type == 'article':
+                if additional_media["media_type"] == 'article':
                     
                     cursor.execute(
-                        "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [word_id, media_type, media]
+                        "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [
+                            word_id, 
+                            additional_media["media_type"], 
+                            additional_media["article_excerpt"]
+                            ]
                         )
 
                 else:
                     cursor.execute(
-                        "INSERT INTO media (word_id, example_media, media_type) VALUES (?, ?, ?)", [word_id, media, media_type]
+                        "INSERT INTO media (word_id, media_type, video_id, start_time, platform) VALUES (?, ?, ?, ?, ?)", [
+                            word_id,
+                            additional_media["media_type"],
+                            additional_media["video_id"],
+                            additional_media["start_time"],
+                            additional_media["platform"]
+                            ]
                         )
-            
             conn.commit()
 
         # if media items have been replaced in the edit relpace them in the db
@@ -379,37 +391,51 @@ def word_edit(word_id):
                 # Keep old value, no need to update
                     continue  # skip updating this row entirely
                 
-                new_type = classify_media_url(media)
+                replaced_media = classify_media_url(media)
 
                 # check if the media type has changed and update the db
-                if new_type == original:
+                if replaced_media["media_type"] == original:
 
                     # media type is the same, so just update the media
-                    if new_type == 'video':
+                    if replaced_media["media_type"] == 'video':
                         cursor.execute(
-                            "UPDATE media SET example_media = ? WHERE id = ?", 
-                                [media, media_id]
-                            )
+                            "UPDATE media SET example_media = ?, video_id = ?, start_time = ?, platform = ?, WHERE id = ?", [
+                                replaced_media["example_media"], 
+                                replaced_media["video_id"],
+                                replaced_media["start_time"],
+                                replaced_media["platform"],
+                                media_id
+                                ]
+                                )
 
                     else:                    
                         cursor.execute(
                             "UPDATE media SET article_excerpt = ? WHERE id = ?", 
-                                [media, media_id]
+                                [replaced_media["example_media"], media_id]
                             )
 
                 # media type is different so update the media type aswell as the media
                 else:
-                    if new_type == 'video':
+                    if replaced_media["media_type"] == 'video':
                         cursor.execute(
-                            "UPDATE media SET example_media = ?, article_excerpt = NULL, media_type = ? WHERE id = ?", 
-                                [media, new_type, media_id]
-                            )
+                            "UPDATE media SET media_type = ?, article_excerpt = NULL, video_id = ?, start_time = ?, platform = ? WHERE id = ?", [
+                                replaced_media["media_type"],
+                                replaced_media["video_id"],
+                                replaced_media["start_time"],
+                                replaced_media["platform"],
+                                media_id
+                                ]
+                        )
 
                     else:                    
                         cursor.execute(
-                            "UPDATE media SET example_media = NULL, article_excerpt = ?, media_type = ? WHERE id = ?", 
-                                [media, new_type, media_id]
-                            )
+                            "UPDATE media SET video_id = NULL, start_time = NULL, platform = NULL, media_type = ?, article_excerpt = ? WHERE id = ?", [
+                                replaced_media["media_type"],
+                                replaced_media["article_excerpt"],
+                                media_id
+                                ]
+                        )
+
             conn.commit()
 
         # update the vocabulary table in the database
