@@ -1,15 +1,29 @@
-CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, username VARCHAR(22) NOT NULL UNIQUE, email VARCHAR(44) NOT NULL UNIQUE, password_hash VARCHAR(20) NOT NULL); 
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(22) NOT NULL UNIQUE,
+    email VARCHAR(44) UNIQUE,
+    password_hash VARCHAR(600) NOT NULL  -- Increased for bcrypt hashes
+);
 
-CREATE TABLE IF NOT EXISTS "vocabulary" (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, word TEXT NOT NULL, definition TEXT, notes TEXT, example_sentence TEXT, example_media TEXT, media_type TEXT, article_excerpt TEXT, FOREIGN KEY (user_id) REFERENCES users(id));
+CREATE TABLE vocabulary (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    word TEXT NOT NULL,
+    definition TEXT,
+    notes TEXT,
+    example_sentence TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
 
-CREATE TABLE IF NOT EXISTS media (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE media (
+    id SERIAL PRIMARY KEY,
     word_id INTEGER NOT NULL,
-    example_media TEXT,
     article_excerpt TEXT,
-    media_type TEXT,
-    platform TEXT,       -- e.g. 'youtube', 'vimeo', 'article'
-    video_id TEXT,       -- ID of the video without full URL
-    start_time INTEGER,  -- Start time in seconds
-    FOREIGN KEY (word_id) REFERENCES vocabulary (id)
+    media_type VARCHAR(10) CHECK (media_type IN ('youtube', 'vimeo', 'article')),
+    video_id TEXT,
+    start_time INTEGER,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    platform VARCHAR(30),
+    FOREIGN KEY (word_id) REFERENCES vocabulary(id) ON DELETE CASCADE
 );

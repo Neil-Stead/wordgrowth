@@ -1,16 +1,24 @@
 from flask import redirect, render_template, session, g, url_for
 from functools import wraps
-import sqlite3, re
+import sqlite3, re, os
 from urllib.parse import urlparse, parse_qs
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
+import psycopg2
+import psycopg2.extras
+from dotenv import load_dotenv
+load_dotenv()  # take environment variables from .env.
 
-DATABASE = "db/vocab.db"
+# Pick up DATABASE_URL from environment variables (Render will set this automatically)
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:qwerty@localhost:5432/wordgrowth")
+print("DATABASE_URL:", DATABASE_URL)
 
 def get_db_connection():
     if 'db' not in g:
-        g.db = sqlite3.connect(DATABASE)
-        g.db.execute("PRAGMA foreign_keys = ON")  # Enables foreign key checks
-        g.db.row_factory = sqlite3.Row # enables dictionaries to be returned not just tuples
+        g.db = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
     return g.db
+
+### IS THIS CORRECT SEEMS TO BE THE CONNECTION FOR RENDER AND NOT LOCAL ENVIRONMENT
 
 def login_required(f):
     @wraps(f)
@@ -59,12 +67,12 @@ def parse_time_string(t_str):
 
 def classify_media_url(url):
     """
-    Classify a media URL as video, article, or unknown.
+    Classify a media URL as video, article, or null.
     If video, extract platform, video ID, and start time.
     """
     if not url:
         return {
-            "media_type": "unknown",
+            "media_type": None,
             "platform": None,
             "video_id": None,
             "start_time": None
