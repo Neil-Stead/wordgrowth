@@ -20,7 +20,7 @@ CREATE TABLE media (
     id SERIAL PRIMARY KEY,
     word_id INTEGER NOT NULL,
     article_excerpt TEXT,
-    media_type VARCHAR(10) CHECK (media_type IN ('youtube', 'vimeo', 'article')),
+    media_type VARCHAR(10) CHECK (media_type IN ('video', 'article')),
     video_id TEXT,
     start_time INTEGER,
     created_at TIMESTAMPTZ DEFAULT NOW(),
