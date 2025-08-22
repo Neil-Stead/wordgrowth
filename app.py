@@ -27,12 +27,12 @@ def show_words():
     
     else:
         cursor.execute(
-            "SELECT * FROM users WHERE id = ?", [session['user_id']]
+            "SELECT * FROM users WHERE id = %s", [session['user_id']]
             )
         user = cursor.fetchone()
 
         cursor.execute(
-            "SELECT * FROM vocabulary WHERE user_id = ?", [session['user_id']]
+            "SELECT * FROM vocabulary WHERE user_id = %s", [session['user_id']]
             )
         rows = cursor.fetchall()
         
@@ -61,7 +61,7 @@ def register():
         
         # Query database for username
         cursor.execute(
-            "SELECT * FROM users WHERE username = ?", [request.form.get("username")]
+            "SELECT * FROM users WHERE username = %s", [request.form.get("username")]
         )
         users = cursor.fetchall()
 
@@ -72,7 +72,7 @@ def register():
         if request.form.get("email"):
             # Insert new user with email into database
                 cursor.execute(
-                    "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)", [request.form.get("username"), request.form.get("email"), generate_password_hash(request.form.get("password"))]
+                    "INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)", [request.form.get("username"), request.form.get("email"), generate_password_hash(request.form.get("password"))]
                     )
                 conn.commit()
 
@@ -81,7 +81,7 @@ def register():
         else:
             # Insert new user without email into database
                 cursor.execute(
-                    "INSERT INTO users (username, password_hash) VALUES (?, ?)", [request.form.get("username"), generate_password_hash(request.form.get("password"))]
+                    "INSERT INTO users (username, password_hash) VALUES (%s, %s)", [request.form.get("username"), generate_password_hash(request.form.get("password"))]
                     )
                 conn.commit()
 
@@ -112,7 +112,7 @@ def login():
 
         # Query database for username
         cursor.execute(
-            "SELECT * FROM users WHERE username = ?", [request.form.get("username")]
+            "SELECT * FROM users WHERE username = %s", [request.form.get("username")]
         )
         rows = cursor.fetchall()
 
@@ -163,7 +163,7 @@ def account():
 
         # Query database for password
         cursor.execute(
-            "SELECT * FROM users WHERE id = ?", [session["user_id"]]
+            "SELECT * FROM users WHERE id = %s", [session["user_id"]]
         )
         user = cursor.fetchone()
 
@@ -179,7 +179,7 @@ def account():
             new_password_hash = generate_password_hash(request.form.get("new_password"))
 
             cursor.execute(
-                "UPDATE users SET password_hash = ? WHERE id = ?", [new_password_hash, session["user_id"]]
+                "UPDATE users SET password_hash = %s WHERE id = %s", [new_password_hash, session["user_id"]]
                 )
             conn.commit()
 
@@ -193,7 +193,7 @@ def account():
 
         # Display users username
         cursor.execute(
-            "SELECT * FROM users WHERE id = ?", [session["user_id"]]
+            "SELECT * FROM users WHERE id = %s", [session["user_id"]]
             )
         username = cursor.fetchone()
 
@@ -223,11 +223,12 @@ def new_word():
         else:
             # Insert new word into database
             cursor.execute(
-                "INSERT INTO vocabulary (user_id, word, definition, notes, example_sentence) VALUES (?, ?, ?, ?, ?)", [session["user_id"], word, definition, request.form.get("notes"), example_sentence]
+                "INSERT INTO vocabulary (user_id, word, definition, notes, example_sentence) VALUES (%s, %s, %s, %s, %s) RETURNING id", [session["user_id"], word, definition, request.form.get("notes"), example_sentence]
                 )
             conn.commit()
 
-            new_id = cursor.lastrowid
+            result = cursor.fetchone()
+            new_id = result['id']
 
             # Insert media info into media table in database
             if media_list:
@@ -236,23 +237,24 @@ def new_word():
                     if media_info["media_type"] == 'article':
                         
                         cursor.execute(
-                            "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [new_id, media_info["media_type"], sample]
+                            "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (%s, %s, %s) RETURNING id", [new_id, media_info["media_type"], sample]
                             )
 
                     else:
                         cursor.execute(
-                            "INSERT INTO media (word_id, example_media, media_type, video_id, start_time, platform) VALUES (?, ?, ?, ?, ?, ?)", [
+                            "INSERT INTO media (word_id, media_type, video_id, start_time, platform) VALUES (%s, %s, %s, %s, %s) RETURNING id", [
                                 new_id, 
-                                sample, 
                                 media_info["media_type"],
                                 media_info["video_id"],
                                 media_info["start_time"],
-                                media_info["platform"],
+                                media_info["platform"]
                                 ]
                             )
                 
                 conn.commit()
-                new_media_id = cursor.lastrowid
+                
+                result = cursor.fetchone()
+                new_media_id = result['id']
 
                 return redirect(url_for("word_view", word_id=new_id, media_id=new_media_id))
             
@@ -268,9 +270,9 @@ def new_word():
 def word_view(word_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM vocabulary WHERE id=?", [word_id])
+    cursor.execute("SELECT * FROM vocabulary WHERE id = %s", [word_id])
     word = cursor.fetchone()
-    cursor.execute("SELECT * FROM media WHERE word_id = ?", [word_id])
+    cursor.execute("SELECT * FROM media WHERE word_id = %s", [word_id])
     media_entries = cursor.fetchall()
 
     if request.method == "POST":
@@ -284,9 +286,11 @@ def word_view(word_id):
 
         elif action == "delete":
             cursor.execute(
-                "DELETE FROM vocabulary WHERE id = ?", [word_id]
+                "DELETE FROM vocabulary WHERE id = %s", [word_id]
             )
-            # Shall I delete from media here too ?????
+            cursor.execute(
+                "DELETE FROM media WHERE word_id = %s", [word_id]
+            )
             conn.commit()
             return redirect("/")
     
@@ -318,12 +322,11 @@ def word_view(word_id):
 
                     embed_urls.append(embed_url)
                     
-                else:
+                elif entry["media_type"] == 'article' and entry["article_excerpt"]:
 
                     # pass article excerpt to the list
             
-                    article_excerpt = highlight_word(entry["article_excerpt"], word["word"])
-                
+                    article_excerpt = highlight_word(entry["article_excerpt"], word["word"])    
                     article_excerpts.append(article_excerpt)
                 
             return render_template("word_view.html", word=word, embed_urls=embed_urls, article_excerpts=article_excerpts)
@@ -334,9 +337,9 @@ def word_view(word_id):
 def word_edit(word_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM vocabulary WHERE id=?", [word_id])
+    cursor.execute("SELECT * FROM vocabulary WHERE id = %s", [word_id])
     word = cursor.fetchone()
-    cursor.execute("SELECT * FROM media WHERE word_id=?", [word_id])
+    cursor.execute("SELECT * FROM media WHERE word_id = %s", [word_id])
     media_list = cursor.fetchall()
 
     if request.method == "POST":
@@ -361,7 +364,7 @@ def word_edit(word_id):
                 if additional_media["media_type"] == 'article':
                     
                     cursor.execute(
-                        "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (?, ?, ?)", [
+                        "INSERT INTO media (word_id, media_type, article_excerpt) VALUES (%s, %s, %s)", [
                             word_id, 
                             additional_media["media_type"], 
                             additional_media["article_excerpt"]
@@ -370,7 +373,7 @@ def word_edit(word_id):
 
                 else:
                     cursor.execute(
-                        "INSERT INTO media (word_id, media_type, video_id, start_time, platform) VALUES (?, ?, ?, ?, ?)", [
+                        "INSERT INTO media (word_id, media_type, video_id, start_time, platform) VALUES (%s, %s, %s, %s, %s)", [
                             word_id,
                             additional_media["media_type"],
                             additional_media["video_id"],
@@ -399,7 +402,7 @@ def word_edit(word_id):
                     # media type is the same, so just update the media
                     if replaced_media["media_type"] == 'video':
                         cursor.execute(
-                            "UPDATE media SET example_media = ?, video_id = ?, start_time = ?, platform = ?, WHERE id = ?", [
+                            "UPDATE media SET example_media = %s, video_id = %s, start_time = %s, platform = %s, WHERE id = %s", [
                                 replaced_media["example_media"], 
                                 replaced_media["video_id"],
                                 replaced_media["start_time"],
@@ -410,7 +413,7 @@ def word_edit(word_id):
 
                     else:                    
                         cursor.execute(
-                            "UPDATE media SET article_excerpt = ? WHERE id = ?", 
+                            "UPDATE media SET article_excerpt = %s WHERE id = %s", 
                                 [replaced_media["example_media"], media_id]
                             )
 
@@ -418,7 +421,7 @@ def word_edit(word_id):
                 else:
                     if replaced_media["media_type"] == 'video':
                         cursor.execute(
-                            "UPDATE media SET media_type = ?, article_excerpt = NULL, video_id = ?, start_time = ?, platform = ? WHERE id = ?", [
+                            "UPDATE media SET media_type = %s, article_excerpt = NULL, video_id = %s, start_time = %s, platform = %s WHERE id = %s", [
                                 replaced_media["media_type"],
                                 replaced_media["video_id"],
                                 replaced_media["start_time"],
@@ -429,7 +432,7 @@ def word_edit(word_id):
 
                     else:                    
                         cursor.execute(
-                            "UPDATE media SET video_id = NULL, start_time = NULL, platform = NULL, media_type = ?, article_excerpt = ? WHERE id = ?", [
+                            "UPDATE media SET video_id = NULL, start_time = NULL, platform = NULL, media_type = %s, article_excerpt = %s WHERE id = %s", [
                                 replaced_media["media_type"],
                                 replaced_media["article_excerpt"],
                                 media_id
@@ -440,7 +443,7 @@ def word_edit(word_id):
 
         # update the vocabulary table in the database
         cursor.execute(
-            "UPDATE vocabulary SET word = ?, definition = ?, notes = ?, example_sentence = ? WHERE id = ?", 
+            "UPDATE vocabulary SET word = %s, definition = %s, notes = %s, example_sentence = %s WHERE id = %s", 
                 [
                 updated_word, 
                 updated_definition, 
