@@ -70,3 +70,11 @@ source venv/Scripts/activate
     print(type(media_entries[0]))        # Should print: <class 'sqlite3.Row'>
     print(dict(media_entries[0]))        # Converts the first row into a normal Python dict
     print(dict(media_entries[1]))        # Converts the first row into a normal Python dict
+
+## Database Backup (Before Monthly Expiration)
+```bash
+# Backup 
+pg_dump -Fc $DATABASE_URL > backup.dump
+
+# Restore (when needed) 
+pg_restore -d $NEW_DATABASE_URL backup.dump
