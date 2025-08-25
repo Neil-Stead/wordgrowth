@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 load_dotenv()  # take environment variables from .env.
 
 # Pick up DATABASE_URL from environment variables (Render will set this automatically)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:qwerty@localhost:5432/wordgrowth")
-print("DATABASE_URL:", DATABASE_URL)
+DATABASE_URL = "postgresql://postgres:qwerty@localhost:5432/wordgrowth"
+print("Using DATABASE_URL:", DATABASE_URL)
 
 def get_db_connection():
     if 'db' not in g:
